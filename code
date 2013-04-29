@@ -1,4 +1,989 @@
-sample
-======
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Security.Principal;
+using System.Threading;
+using System.Net;
+using System.Diagnostics;
+using System.Collections;
+using System.ComponentModel;
+using System.Web;
+using System.Web.Mail;
+using System.Web.Caching;
+using System.Web.SessionState;
+using System.Net.Mail;
+using System.IO;
+using System.Messaging;
 
-sample
+
+namespace TestCacheTimeout 
+{
+  /// <summary>
+    /// Summary description for Global.
+	/// </summary>
+	public class Global : System.Web.HttpApplication
+	{
+     
+        private const string DummyPageUrl = "http://server.impreminder.com/impserver/WebForm1.aspx";
+        private const string CONNECTION_STRING = "Data Source=impreminder.db.10203843.hostedresource.com;Initial Catalog=impreminder;User ID=impreminder;Password=Imp%2013";
+        int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, h = 0, i = 0, j = 0, k = 0, l = 0;
+        string c_date, c_time; string query;
+        string servere;
+        string usere;
+        string passe;
+        string sender,username, password;
+        string rmid, rid, cat, text, del, stat;
+        string rmid1, rid1, cat1, text1, del1, stat1;
+        string MyString, targetdate, targettime;
+		public static ArrayList _JobQueue = new ArrayList();
+
+		/// <summary>
+		/// Required designer variable.
+		/// </summary>
+		private System.ComponentModel.IContainer components = null;
+
+		public Global()
+		{
+			InitializeComponent();
+		}	
+		
+		protected void Application_Start(Object sender, EventArgs e)
+		{
+			RegisterCacheEntry();
+		}
+
+		/// <summary>
+		/// Register a cache entry which expires in 1 minute and gives us a callback.
+		/// </summary>
+		/// <returns></returns>
+		private void RegisterCacheEntry()
+		{	
+			// Prevent duplicate key addition
+			if( null != HttpContext.Current.Cache[ DummyCacheItemKey ] ) return;
+
+			HttpContext.Current.Cache.Add( DummyCacheItemKey, "Test", null, DateTime.MaxValue,
+				TimeSpan.FromMinutes(1), CacheItemPriority.NotRemovable,
+				new CacheItemRemovedCallback( CacheItemRemovedCallback ) );
+		}
+
+		/// <summary>
+		/// Callback method which gets invoked whenever the cache entry expires.
+		/// We can do our "service" works here.
+		/// </summary>
+		/// <param name="key"></param>
+		/// <param name="value"></param>
+		/// <param name="reason"></param>
+		public void CacheItemRemovedCallback(string key, object value, CacheItemRemovedReason reason)
+		{
+			Debug.WriteLine("Cache item callback: " + DateTime.Now.ToString() );
+
+			// Do the service works
+			DoWork();
+
+			// We need to register another cache item which will expire again in one
+			// minute. However, as this callback occurs without any HttpContext, we do not
+			// have access to HttpContext and thus cannot access the Cache object. The
+			// only way we can access HttpContext is when a request is being processed which
+			// means a webpage is hit. So, we need to simulate a web page hit and then 
+			// add the cache item.
+			HitPage();
+		}
+
+		/// <summary>
+		/// Hits a local webpage in order to add another expiring item in cache
+		/// </summary>
+		private void HitPage()
+		{
+			WebClient client = new WebClient();
+			client.DownloadData(DummyPageUrl);
+		}
+
+		/// <summary>
+		/// Asynchronously do the 'service' works
+		/// </summary>
+		private void DoWork()
+		{
+			Debug.WriteLine("Begin DoWork...");
+			Debug.WriteLine("Running as: " + WindowsIdentity.GetCurrent().Name );
+
+			//DoSomeFileWritingStuff();
+            process();
+            ExecuteQueuedJobs();
+			//DoSomeEmailSendStuff();
+			//DoSomeMSMQStuff();
+			
+
+			Debug.WriteLine("End DoWork...");
+		}
+        static DateTime ConvertFromDateTimeOffset(DateTimeOffset dateTime)
+        {
+            if (dateTime.Offset.Equals(TimeSpan.Zero))
+                return dateTime.UtcDateTime;
+            else if (dateTime.Offset.Equals(TimeZoneInfo.Local.GetUtcOffset(dateTime.DateTime)))
+                return DateTime.SpecifyKind(dateTime.DateTime, DateTimeKind.Local);
+            else
+                return dateTime.DateTime;
+        }
+        private void process()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            string Min = abc.Minute.ToString();
+            if (Min == "1" || Min == "2" || Min == "3" || Min == "4" || Min == "5")
+            {
+                if (a == 0)
+                {
+                    a = 1; l = 0;
+                    set05();
+                }
+            }
+            else if (Min == "6" || Min == "7" || Min == "8" || Min == "9" || Min == "10")
+            {
+                if (b == 0)
+                {
+                    b = 1; a = 0;
+                    set10();
+                }
+            }
+            else if (Min == "11" || Min == "12" || Min == "13" || Min == "14" || Min == "15")
+            {
+                if (c == 0)
+                {
+                    c = 1; b = 0; a = 0;
+                    set15();
+                }
+            }
+            else if (Min == "16" || Min == "17" || Min == "18" || Min == "19" || Min == "20")
+            {
+                if (d == 0)
+                {
+                    d = 1; c = 0; b = 0; a = 0;
+                    set20();
+                }
+            }
+            else if (Min == "21" || Min == "22" || Min == "23" || Min == "24" || Min == "25")
+            {
+                if (e == 0)
+                {
+                    e = 1; d = 0; c = 0; b = 0; a = 0;
+                    set25();
+                }
+            }
+            else if (Min == "26" || Min == "27" || Min == "28" || Min == "29" || Min == "30")
+            {
+                if (f == 0)
+                {
+                    f = 1; e = 0; d = 0; c = 0; b = 0; a = 0;
+                    set30();
+                }
+            }
+            else if (Min == "31" || Min == "32" || Min == "33" || Min == "34" || Min == "35")
+            {
+                if (g == 0)
+                {
+                    g = 1; f = 0; e = 0; d = 0; c = 0; b = 0; a = 0;
+                    set35();
+                }
+            }
+            else if (Min == "36" || Min == "37" || Min == "38" || Min == "39" || Min == "40")
+            {
+                if (h == 0)
+                {
+                    h = 1; g = 0; f = 0; e = 0; d = 0; c = 0; b = 0; a = 0;
+                    set40();
+                }
+            }
+            else if (Min == "41" || Min == "42" || Min == "43" || Min == "44" || Min == "45")
+            {
+                if (i == 0)
+                {
+                    i = 1; h = 0; g = 0; f = 0; e = 0; d = 0; c = 0; b = 0; a = 0;
+                    set45();
+                }
+            }
+            else if (Min == "46" || Min == "47" || Min == "48" || Min == "49" || Min == "50")
+            {
+                if (j == 0)
+                {
+                    j = 1; i = 0; h = 0; g = 0; f = 0; e = 0; d = 0; c = 0; b = 0; a = 0;
+                    set50();
+                }
+            }
+            else if (Min == "51" || Min == "52" || Min == "53" || Min == "54" || Min == "55")
+            {
+                if (k == 0)
+                {
+                    k = 1; j = 0; i = 0; h = 0; g = 0; f = 0; e = 0; d = 0; c = 0; b = 0; a = 0;
+                    set55();
+                }
+            }
+            else if (Min == "56" || Min == "57" || Min == "58" || Min == "59" || Min == "0")
+            {
+                if (l == 0)
+                {
+                    l = 1; k = 0; j = 0; i = 0; h = 0; g = 0; f = 0; e = 0; d = 0; c = 0; b = 0; a = 0;
+                    set00();
+                }
+            }
+            //int i = 0;
+            //for (i = 0; i < 20; i++ )
+            //{
+            //DoSomeDatabaseOperation();
+            //DoSomeEmailSendStuff();
+            //}
+                
+        }
+
+		/// <summary>
+		/// Execute jobs that are queued for execution at a specific time
+		/// </summary>
+		private void ExecuteQueuedJobs()
+		{
+			ArrayList jobs = new ArrayList();
+
+			// Collect which jobs are overdue
+			foreach( Job job in _JobQueue )
+			{
+				if( job.ExecutionTime <= DateTime.Now )
+					jobs.Add( job );
+			}
+
+			// Eecute the jobs that are overdue
+			foreach( Job job in jobs )
+			{
+				lock( _JobQueue )
+				{
+					_JobQueue.Remove( job );
+				}
+
+				job.Execute();
+			}
+		}
+
+
+
+        public void fill_sms_bucket()
+        {
+            query = "";
+            try
+            {
+                DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+                DateTime abc = ConvertFromDateTimeOffset(newTime);
+                DateTime X = abc;
+                string day = X.ToString("dddd");
+                SqlConnection con = new SqlConnection(CONNECTION_STRING);
+                SqlCommand com = new SqlCommand("select Reminder.Reminder_ID,Reminder.Reg_ID,Reminder.Category,Reminder.Text,Reminder.Deliver_To_SMS,Reminder.Frequency from Reminder left join Registration on Reminder.Reg_ID = Registration.Reg_ID where Registration.SMS_Count>0 and (Reminder.Start_date='" + c_date + "' OR Reminder.Target_Date='" + c_date + "')and (Reminder.Time='" + c_time + "' or Reminder.Target_Time='" + c_time + "')and (Reminder.Deliver_Mode='SMS'or Reminder.Deliver_Mode='Email & SMS')and Reminder.Mode='Active' OR Frequency Like '%" + day + "%'", con);
+                com.Connection = con;
+                com.Connection.Open();
+                SqlDataReader dr = com.ExecuteReader();
+                if (dr.HasRows)
+                {
+                    while (dr.Read())
+                    {
+                        string r1, r2, r3, r4, r5, r6;
+                        r1 = dr["Reminder_ID"].ToString(); r2 = dr["Reg_ID"].ToString(); r3 = dr["Category"].ToString(); r4 = dr["Text"].ToString();
+                        r5 = dr["Deliver_To_SMS"].ToString(); r6 = dr["Frequency"].ToString();
+                        query = query + "Insert into SMS_Bucket values('" + r1 + "','" + r2 + "','" + r3 + "','" + r4 + "','" + r5 + "','" + r6 + "');";
+
+                    }
+                }
+                com.Connection.Close();
+
+                try
+                {
+                    SqlCommand cmd;
+                    string strquery;
+                    con.Open();
+                    strquery = query;
+                    cmd = new SqlCommand(strquery, con);
+                    cmd.ExecuteNonQuery();
+                    con.Close();
+                }
+                catch
+                {
+                }
+            }
+            catch
+            {
+            }
+        }
+        public void fill_email_bucket()
+        {
+            query = "";
+            try
+            {
+                DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+                DateTime abc = ConvertFromDateTimeOffset(newTime);
+                DateTime X = abc;
+                string day = X.ToString("dddd");
+                SqlConnection con = new SqlConnection(CONNECTION_STRING);
+                SqlCommand com = new SqlCommand("select Reminder.Reminder_ID,Reminder.Reg_ID,Reminder.Category,Reminder.Text,Reminder.Deliver_To_EMAIL,Reminder.Frequency from Reminder left join Registration on Reminder.Reg_ID = Registration.Reg_ID where Registration.SMS_Count>0 and (Reminder.Start_date='" + c_date + "' OR Reminder.Target_Date='" + c_date + "')and (Reminder.Time='" + c_time + "' or Reminder.Target_Time='" + c_time + "')and (Reminder.Deliver_Mode='Email'or Reminder.Deliver_Mode='Email & SMS')and Reminder.Mode='Active' OR Frequency Like '%" + day + "%'", con);
+                com.Connection = con;
+                com.Connection.Open();
+                SqlDataReader dr = com.ExecuteReader();
+                if (dr.HasRows)
+                {
+                    while (dr.Read())
+                    {
+                        string r1, r2, r3, r4, r5, r6;
+                        r1 = dr["Reminder_ID"].ToString(); r2 = dr["Reg_ID"].ToString(); r3 = dr["Category"].ToString(); r4 = dr["Text"].ToString();
+                        r5 = dr["Deliver_To_EMAIL"].ToString(); r6 = dr["Frequency"].ToString();
+                        query = query + "Insert into Email_Bucket values('" + r1 + "','" + r2 + "','" + r3 + "','" + r4 + "','" + r5 + "','" + r6 + "');";
+                        
+                    }
+                }
+                com.Connection.Close();
+
+                try
+                {
+                    SqlCommand cmd;
+                    string strquery;
+                    con.Open();
+                    strquery = query;
+                    cmd = new SqlCommand(strquery, con);
+                    cmd.ExecuteNonQuery();
+                    con.Close();
+                }
+                catch
+                {
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        public void send_email()
+        {
+            rmid = ""; rid = ""; cat = ""; text = ""; del = ""; stat = "";
+            rmid1 = ""; rid1 = ""; cat1 = ""; text1 = ""; del1 = ""; stat1 = "";
+            try
+            {
+                SqlConnection con = new SqlConnection(CONNECTION_STRING);
+                SqlCommand com = new SqlCommand("select * from Email_Bucket", con);
+                com.Connection = con;
+                com.Connection.Open();
+                SqlDataReader dr = com.ExecuteReader();
+                if (dr.HasRows)
+                {
+                    while (dr.Read())
+                    {
+                        rmid = dr["Reminder_ID"].ToString(); rid = dr["Reg_ID"].ToString(); cat = dr["Category"].ToString(); text = dr["Text"].ToString();
+                        del = dr["Deliver_To_EMAIL"].ToString(); stat = dr["Status"].ToString();
+
+                        if (rmid1 == "")
+                        {
+                            rmid1 = dr["Reminder_ID"].ToString(); rid1 = dr["Reg_ID"].ToString(); cat1 = dr["Category"].ToString(); text1 = dr["Text"].ToString();
+                            del1 = dr["Deliver_To_EMAIL"].ToString(); stat1 = dr["Status"].ToString();
+                        }
+                        else
+                        {
+                            rmid1 += "," + dr["Reminder_ID"].ToString(); rid1 += "," + dr["Reg_ID"].ToString(); cat1 += "," + dr["Category"].ToString(); text1 += "," + dr["Text"].ToString();
+                            del1 += "," + dr["Deliver_To_EMAIL"].ToString(); stat1 += "," + dr["Status"].ToString();
+                        }
+
+                        System.Net.Mail.SmtpClient client = new System.Net.Mail.SmtpClient();
+                        client.Host = servere;
+                        client.UseDefaultCredentials = false;
+                        client.EnableSsl = false;
+                        client.Credentials = new System.Net.NetworkCredential(usere, passe);
+                        client.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;
+                        System.Net.Mail.MailMessage message = new System.Net.Mail.MailMessage(usere, del);
+                        message.Subject = cat + " Reminder From Impreminder.com!";
+                        message.Body = text;
+
+                        message.BodyEncoding = System.Text.Encoding.UTF8;
+                        message.IsBodyHtml = true;
+
+                        try
+                        {
+                            client.Send(message);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex);
+                        }
+                        
+                    }
+                }
+                com.Connection.Close();
+
+            }
+            catch
+            {
+            }
+            update_emailcount();
+            update_reminder();
+        }
+        
+        public void send_sms()
+        {
+            rmid = ""; rid = ""; cat = ""; text = ""; del = ""; stat = "";
+            rmid1 = ""; rid1 = ""; cat1 = ""; text1 = ""; del1 = ""; stat1 = "";
+            try
+            {
+                SqlConnection con = new SqlConnection(CONNECTION_STRING);
+                SqlCommand com = new SqlCommand("select * from SMS_Bucket", con);
+                com.Connection = con;
+                com.Connection.Open();
+                SqlDataReader dr = com.ExecuteReader();
+                if (dr.HasRows)
+                {
+                    while (dr.Read())
+                    {
+                        rmid = dr["Reminder_ID"].ToString(); rid = dr["Reg_ID"].ToString(); cat = dr["Category"].ToString(); text = dr["Text"].ToString();
+                        del = dr["Deliver_To_SMS"].ToString(); stat = dr["Status"].ToString();
+
+                        if (rmid1 == "")
+                        {
+                            rmid1 = dr["Reminder_ID"].ToString(); rid1 = dr["Reg_ID"].ToString(); cat1 = dr["Category"].ToString(); text1 = dr["Text"].ToString();
+                            del1 = dr["Deliver_To_SMS"].ToString(); stat1 = dr["Status"].ToString();
+                        }
+                        else
+                        {
+                            rmid1 += "," + dr["Reminder_ID"].ToString(); rid1 += "," + dr["Reg_ID"].ToString(); cat1 += "," + dr["Category"].ToString(); text1 += "," + dr["Text"].ToString();
+                            del1 += "," + dr["Deliver_To_SMS"].ToString(); stat1 += "," + dr["Status"].ToString();
+                            
+                        }
+                        
+                        try
+                        {
+                            string strUrl = "http://dndopen.dove-sms.com/SMSAPI.jsp?username=" + username + "&password=" + password + "&sendername=" + sender + "&mobileno=" + del + "&message=" + text + "";
+                            WebRequest request = HttpWebRequest.Create(strUrl);
+                            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                            Stream s = (Stream)response.GetResponseStream();
+                            StreamReader readStream = new StreamReader(s);
+                            string dataString = readStream.ReadToEnd();
+                            response.Close();
+                            s.Close();
+                            readStream.Close();
+
+                        }
+                        catch
+                        {
+                        }
+                        
+                    }
+                }
+                com.Connection.Close();
+
+            }
+            catch
+            {
+            }
+            update_smscount();
+            update_reminder();
+        }
+        
+        public void update_emailcount()
+        {
+            string[] a = rid1.Split(',');
+            for (int i = 0; i <= a.GetUpperBound(0); i++)
+            {
+                try
+                {
+                    SqlConnection con = new SqlConnection(CONNECTION_STRING);
+                    SqlCommand cmd;
+                    string strquery;
+                    SqlDataReader Values;
+                    con.Open();
+                    strquery = "select EMAIL_Count from Registration where Reg_ID=" + a[i].ToString() + "";
+                    cmd = new SqlCommand(strquery, con);
+                    Values = cmd.ExecuteReader();
+                    if (Values.Read())
+                    {
+                        int count = System.Convert.ToInt16(Values.GetValue(0));
+                        count = count - 1;
+                        con.Close();
+
+                        con.Open();
+                        strquery = "Update Registration set EMAIL_Count='" + count + "' where Reg_ID=" + a[i].ToString() + "";
+                        cmd = new SqlCommand(strquery, con);
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+                    con.Close();
+                }
+                catch
+                {
+                }
+            }
+        }
+        public void update_smscount()
+        {
+            string[] a = rid1.Split(',');
+            for (int i = 0; i <= a.GetUpperBound(0); i++)
+            {
+                try
+                {
+                    SqlConnection con = new SqlConnection(CONNECTION_STRING);
+                    SqlCommand cmd;
+                    string strquery;
+                    SqlDataReader Values;
+                    con.Open();
+                    strquery = "select SMS_Count from Registration where Reg_ID=" + a[i].ToString() + "";
+                    cmd = new SqlCommand(strquery, con);
+                    Values = cmd.ExecuteReader();
+                    if (Values.Read())
+                    {
+                        int count = System.Convert.ToInt16(Values.GetValue(0));
+                        count = count - 1;
+                        con.Close();
+
+                        con.Open();
+                        strquery = "Update Registration set SMS_Count='" + count + "' where Reg_ID=" + a[i].ToString() + "";
+                        cmd = new SqlCommand(strquery, con);
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+                    con.Close();
+                }
+                catch
+                {
+                }
+            }
+        }
+        public void update_reminder()
+        {
+             string[] a = rmid1.Split(',');
+             string[] b = stat1.Split(',');
+             if (b[0] == "")
+             {
+             }
+             else
+             {
+                 for (int i = 0; i <= a.GetUpperBound(0); i++)
+                 {
+                     string stat2 = b[i].ToString().Substring(b[i].ToString().Length - 2);
+
+                     if (b[i].ToString() == "Once a year" || b[i].ToString() == "Once a month" || stat2 == "s)")
+                     {
+                         try
+                         {
+                             SqlConnection con = new SqlConnection(CONNECTION_STRING);
+                             SqlCommand cmd;
+                             string strquery;
+                             SqlDataReader Values;
+                             con.Open();
+                             strquery = "select Status,Target_Date,Target_Time from Reminder where Reminder_ID=" + a[i].ToString() + "";
+                             cmd = new SqlCommand(strquery, con);
+                             Values = cmd.ExecuteReader();
+
+                             if (Values.Read())
+                             {
+                                 string date = Values.GetValue(0).ToString();
+                                 string t_date = Values.GetValue(1).ToString();
+                                 string t_time = Values.GetValue(2).ToString();
+
+                                 string datenow = DateTime.Now.ToString("yyyy-M-d");
+                                 if (datenow == date)
+                                 {
+                                 }
+                                 else
+                                 {
+                                     con.Close();
+                                     if (b[i].ToString() == "Once a year")
+                                     {
+                                         MyString = t_date.Substring(t_date.Length - 4) + "-" + getBetween(t_date, "", " ") + "-" + getBetween(t_date, " ", ",") + " " + getBetween(t_time, "", ":") + ":" + getBetween(t_time, ":", " ") + " " + t_time.Substring(t_time.Length - 2);
+                                         DateTime MyDateTime;
+                                         MyDateTime = new DateTime();
+                                         MyDateTime = DateTime.ParseExact(MyString, "yyyy-M-d hh:mm tt", null);
+                                         DateTime X = MyDateTime.AddYears(1);
+                                         targetdate = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+                                         targettime = X.ToString("hh:mm tt");
+                                     }
+                                     else if (b[i].ToString() == "Once a month")
+                                     {
+                                         MyString = t_date.Substring(t_date.Length - 4) + "-" + getBetween(t_date, "", " ") + "-" + getBetween(t_date, " ", ",") + " " + getBetween(t_time, "", ":") + ":" + getBetween(t_time, ":", " ") + " " + t_time.Substring(t_time.Length - 2);
+                                         DateTime MyDateTime;
+                                         MyDateTime = new DateTime();
+                                         MyDateTime = DateTime.ParseExact(MyString, "yyyy-M-d hh:mm tt", null);
+                                         DateTime X = MyDateTime.AddMonths(1);
+                                         targetdate = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+                                         targettime = X.ToString("hh:mm tt");
+                                     }
+                                     else
+                                     {
+                                         int a1 = System.Convert.ToInt16(getBetween(b[i].ToString(), "Once Every ", "day(s)"));
+                                         MyString = t_date.Substring(t_date.Length - 4) + "-" + getBetween(t_date, "", " ") + "-" + getBetween(t_date, " ", ",") + " " + getBetween(t_time, "", ":") + ":" + getBetween(t_time, ":", " ") + " " + t_time.Substring(t_time.Length - 2);
+                                         DateTime MyDateTime;
+                                         MyDateTime = new DateTime();
+                                         MyDateTime = DateTime.ParseExact(MyString, "yyyy-M-d hh:mm tt", null);
+                                         DateTime X = MyDateTime.AddDays(a1);
+                                         targetdate = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+                                         targettime = X.ToString("hh:mm tt");
+                                     }
+                                     con.Open();
+                                     strquery = "Update Reminder set Status='" + datenow + "', Target_Date='" + targetdate + "',Target_Time='" + targettime + "' where Reminder_ID=" + a[i].ToString() + "";
+                                     cmd = new SqlCommand(strquery, con);
+                                     cmd.ExecuteNonQuery();
+                                     con.Close();
+                                 }
+
+                             }
+                             con.Close();
+                         }
+                         catch
+                         {
+                         }
+                     }
+                 }
+             }
+        }
+        
+        public void clear()
+        {
+            try
+            {
+                SqlConnection con = new SqlConnection(CONNECTION_STRING);
+                SqlCommand cmd;
+                string strquery;
+                con.Open();
+                strquery = "Truncate table SMS_Bucket;Truncate table Email_Bucket;";
+                cmd = new SqlCommand(strquery, con);
+                cmd.ExecuteNonQuery();
+                con.Close();
+            }
+            catch
+            {
+            }
+        }
+
+        public static string getBetween(string strSource, string strStart, string strEnd)
+        {
+            int Start, End;
+            if (strSource.Contains(strStart) && strSource.Contains(strEnd))
+            {
+                Start = strSource.IndexOf(strStart, 0) + strStart.Length;
+                End = strSource.IndexOf(strEnd, Start);
+                return strSource.Substring(Start, End - Start);
+            }
+            else
+            {
+                return "";
+            }
+        }
+
+        private void set05()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":05 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set10()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":10 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set15()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":15 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set20()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":20 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set25()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":25 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set30()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":30 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set35()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":35 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set40()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":40 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set45()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":45 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set50()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":50 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set55()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":55 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        private void set00()
+        {
+            DateTimeOffset newTime = TimeZoneInfo.ConvertTime(DateTimeOffset.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+            DateTime abc = ConvertFromDateTimeOffset(newTime);
+            DateTime X = abc;
+            X = X.AddHours(1);
+            c_date = X.Month.ToString() + " " + X.Day.ToString() + ", " + X.Year.ToString();
+            string time = X.ToString("hh:mm tt");
+            c_time = X.ToString("hh") + ":00 " + time.Substring(time.Length - 2);
+            email_gateway();
+            sms_gateway();
+            fill_sms_bucket();
+            fill_email_bucket();
+            send_email();
+            send_sms();
+            clear();
+        }
+
+        public void email_gateway()
+        {
+            try
+            {
+                SqlConnection con = new SqlConnection(CONNECTION_STRING);
+                SqlCommand cmd;
+                string strquery;
+                SqlDataReader Values;
+                con.Open();
+                strquery = "select Others,g_u_name,g_password from SMTP_Settings";
+                cmd = new SqlCommand(strquery, con);
+                Values = cmd.ExecuteReader();
+                if (Values.Read())
+                {
+                    servere = Values.GetValue(0).ToString();
+                    usere = Values.GetValue(1).ToString();
+                    passe = Values.GetValue(2).ToString();
+                }
+                con.Close();
+            }
+            catch
+            {
+
+            }
+        }
+
+        public void sms_gateway()
+        {
+            try
+            {
+                SqlConnection con = new SqlConnection(CONNECTION_STRING);
+                SqlCommand cmd;
+                string strquery;
+                SqlDataReader Values;
+                con.Open();
+                strquery = "select Mobile_No,User_Name,Password from SMS_Settings";
+                cmd = new SqlCommand(strquery, con);
+                Values = cmd.ExecuteReader();
+                if (Values.Read())
+                {
+                    sender = Values.GetValue(0).ToString();
+                    username = Values.GetValue(1).ToString();
+                    password = Values.GetValue(2).ToString();
+                }
+                con.Close();
+            }
+            catch
+            {
+
+            }
+        }
+
+
+		protected void Session_Start(Object sender, EventArgs e)
+		{
+
+		}
+
+		protected void Application_BeginRequest(Object sender, EventArgs e)
+		{
+			// If the dummy page is hit, then it means we want to add another item
+			// in cache
+			if( HttpContext.Current.Request.Url.ToString() == DummyPageUrl )
+			{
+				// Add the item in cache and when succesful, do the work.
+				RegisterCacheEntry();
+			}
+		}
+
+		protected void Application_EndRequest(Object sender, EventArgs e)
+		{
+
+		}
+
+		protected void Application_AuthenticateRequest(Object sender, EventArgs e)
+		{
+
+		}
+
+		protected void Application_Error(Object sender, EventArgs e)
+		{
+			Debug.WriteLine( Server.GetLastError() );
+		}
+
+		protected void Session_End(Object sender, EventArgs e)
+		{
+
+		}
+
+		protected void Application_End(Object sender, EventArgs e)
+		{
+
+		}
+			
+		#region Web Form Designer generated code
+		/// <summary>
+		/// Required method for Designer support - do not modify
+		/// the contents of this method with the code editor.
+		/// </summary>
+		private void InitializeComponent()
+		{    
+			this.components = new System.ComponentModel.Container();
+		}
+		#endregion
+	}
+}
+
